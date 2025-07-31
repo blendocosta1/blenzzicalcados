@@ -9,7 +9,6 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useCart, type Product } from "@/contexts/cart-context"
 import { CartSidebar } from "@/components/cart-sidebar"
 
@@ -132,23 +131,18 @@ export default function BlenzziCalcados() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [cartOpen, setCartOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const [activeTab, setActiveTab] = useState("todos")
 
   const { state, dispatch } = useCart()
 
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch =
+  const searchFilteredProducts = products.filter(
+    (product) =>
       product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchQuery.toLowerCase())
+      product.category.toLowerCase().includes(searchQuery.toLowerCase()),
+  )
 
-    const matchesTab =
-      activeTab === "todos" ||
-      (activeTab === "mais-vendidos" && product.isBestSeller) ||
-      (activeTab === "masculino" && product.gender === "masculino") ||
-      (activeTab === "feminino" && product.gender === "feminino")
-
-    return matchesSearch && matchesTab
-  })
+  const bestSellers = searchFilteredProducts.filter((product) => product.isBestSeller)
+  const menProducts = searchFilteredProducts.filter((product) => product.gender === "masculino")
+  const womenProducts = searchFilteredProducts.filter((product) => product.gender === "feminino")
 
   const handleAddToCart = (product: Product, size: string) => {
     dispatch({ type: "ADD_TO_CART", payload: { product, size } })
@@ -185,11 +179,14 @@ export default function BlenzziCalcados() {
               <a href="#" className="text-black hover:text-gray-600 transition-colors">
                 Início
               </a>
-              <a href="#produtos" className="text-black hover:text-gray-600 transition-colors">
-                Produtos
+              <a href="#mais-vendidos" className="text-black hover:text-gray-600 transition-colors">
+                Mais Vendidos
               </a>
-              <a href="#" className="text-black hover:text-gray-600 transition-colors">
-                Sobre
+              <a href="#masculino" className="text-black hover:text-gray-600 transition-colors">
+                Masculino
+              </a>
+              <a href="#feminino" className="text-black hover:text-gray-600 transition-colors">
+                Feminino
               </a>
               <a href="#" className="text-black hover:text-gray-600 transition-colors">
                 Contato
@@ -235,11 +232,14 @@ export default function BlenzziCalcados() {
                     <a href="#" className="text-black hover:text-gray-600 transition-colors text-lg">
                       Início
                     </a>
-                    <a href="#produtos" className="text-black hover:text-gray-600 transition-colors text-lg">
-                      Produtos
+                    <a href="#mais-vendidos" className="text-black hover:text-gray-600 transition-colors text-lg">
+                      Mais Vendidos
                     </a>
-                    <a href="#" className="text-black hover:text-gray-600 transition-colors text-lg">
-                      Sobre
+                    <a href="#masculino" className="text-black hover:text-gray-600 transition-colors text-lg">
+                      Masculino
+                    </a>
+                    <a href="#feminino" className="text-black hover:text-gray-600 transition-colors text-lg">
+                      Feminino
                     </a>
                     <a href="#" className="text-black hover:text-gray-600 transition-colors text-lg">
                       Contato
@@ -269,35 +269,317 @@ export default function BlenzziCalcados() {
           <Button
             size="lg"
             className="bg-white text-black hover:bg-gray-100 px-8 py-3 text-lg"
-            onClick={() => document.getElementById("produtos")?.scrollIntoView({ behavior: "smooth" })}
+            onClick={() => document.getElementById("mais-vendidos")?.scrollIntoView({ behavior: "smooth" })}
           >
             Ver Produtos
           </Button>
         </div>
       </section>
 
-      {/* Products Section */}
-      <section id="produtos" className="py-16">
+      {/* Best Sellers Section */}
+      <section id="mais-vendidos" className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h3 className="text-3xl font-bold text-black mb-4">NOSSA COLEÇÃO</h3>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Calçados selecionados com qualidade premium e design moderno para todas as ocasiões
-            </p>
+            <h3 className="text-3xl font-bold text-black mb-4">MAIS VENDIDOS</h3>
+            <p className="text-gray-600 max-w-2xl mx-auto">Os produtos favoritos dos nossos clientes</p>
           </div>
 
-          {/* Category Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-            <TabsList className="grid w-full grid-cols-4 max-w-2xl mx-auto">
-              <TabsTrigger value="todos">Todos</TabsTrigger>
-              <TabsTrigger value="mais-vendidos">Mais Vendidos</TabsTrigger>
-              <TabsTrigger value="masculino">Masculino</TabsTrigger>
-              <TabsTrigger value="feminino">Feminino</TabsTrigger>
-            </TabsList>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {bestSellers.map((product) => (
+              <Card
+                key={product.id}
+                className="group cursor-pointer hover:shadow-lg transition-all duration-300 border-gray-200 bg-white"
+              >
+                <CardContent className="p-0">
+                  <div className="relative overflow-hidden" onClick={() => setSelectedProduct(product)}>
+                    <Image
+                      src={product.image || "/placeholder.svg"}
+                      alt={product.name}
+                      width={300}
+                      height={300}
+                      className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    {product.originalPrice && (
+                      <Badge className="absolute top-4 left-4 bg-black text-white">OFERTA</Badge>
+                    )}
+                    <Badge className="absolute top-4 right-4 bg-red-600 text-white">MAIS VENDIDO</Badge>
+                  </div>
 
-            <TabsContent value={activeTab} className="mt-8">
+                  <div className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <Badge variant="outline" className="text-xs">
+                        {product.category}
+                      </Badge>
+                      <div className="flex items-center space-x-1">
+                        {renderStars(product.rating)}
+                        <span className="text-sm text-gray-600">({product.reviews})</span>
+                      </div>
+                    </div>
+
+                    <h4
+                      className="font-semibold text-lg mb-3 text-black group-hover:text-gray-700 transition-colors cursor-pointer"
+                      onClick={() => setSelectedProduct(product)}
+                    >
+                      {product.name}
+                    </h4>
+
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-xl font-bold text-black">
+                          R$ {product.price.toFixed(2).replace(".", ",")}
+                        </span>
+                        {product.originalPrice && (
+                          <span className="text-sm text-gray-500 line-through">
+                            R$ {product.originalPrice.toFixed(2).replace(".", ",")}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleToggleFavorite(product.id)
+                        }}
+                        className={`${
+                          state.favorites.includes(product.id)
+                            ? "bg-black text-white hover:bg-gray-800"
+                            : "hover:bg-gray-100"
+                        }`}
+                      >
+                        <Heart className={`w-4 h-4 ${state.favorites.includes(product.id) ? "fill-current" : ""}`} />
+                      </Button>
+                      <Button
+                        className="flex-1 bg-black text-white hover:bg-gray-800"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setSelectedProduct(product)
+                        }}
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Adicionar
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Men's Section */}
+      <section id="masculino" className="py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h3 className="text-3xl font-bold text-black mb-4">MASCULINO</h3>
+            <p className="text-gray-600 max-w-2xl mx-auto">Calçados masculinos com estilo e personalidade</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {menProducts.map((product) => (
+              <Card
+                key={product.id}
+                className="group cursor-pointer hover:shadow-lg transition-all duration-300 border-gray-200"
+              >
+                <CardContent className="p-0">
+                  <div className="relative overflow-hidden" onClick={() => setSelectedProduct(product)}>
+                    <Image
+                      src={product.image || "/placeholder.svg"}
+                      alt={product.name}
+                      width={300}
+                      height={300}
+                      className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    {product.originalPrice && (
+                      <Badge className="absolute top-4 left-4 bg-black text-white">OFERTA</Badge>
+                    )}
+                    {product.isBestSeller && (
+                      <Badge className="absolute top-4 right-4 bg-red-600 text-white">MAIS VENDIDO</Badge>
+                    )}
+                  </div>
+
+                  <div className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <Badge variant="outline" className="text-xs">
+                        {product.category}
+                      </Badge>
+                      <div className="flex items-center space-x-1">
+                        {renderStars(product.rating)}
+                        <span className="text-sm text-gray-600">({product.reviews})</span>
+                      </div>
+                    </div>
+
+                    <h4
+                      className="font-semibold text-lg mb-3 text-black group-hover:text-gray-700 transition-colors cursor-pointer"
+                      onClick={() => setSelectedProduct(product)}
+                    >
+                      {product.name}
+                    </h4>
+
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-xl font-bold text-black">
+                          R$ {product.price.toFixed(2).replace(".", ",")}
+                        </span>
+                        {product.originalPrice && (
+                          <span className="text-sm text-gray-500 line-through">
+                            R$ {product.originalPrice.toFixed(2).replace(".", ",")}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleToggleFavorite(product.id)
+                        }}
+                        className={`${
+                          state.favorites.includes(product.id)
+                            ? "bg-black text-white hover:bg-gray-800"
+                            : "hover:bg-gray-100"
+                        }`}
+                      >
+                        <Heart className={`w-4 h-4 ${state.favorites.includes(product.id) ? "fill-current" : ""}`} />
+                      </Button>
+                      <Button
+                        className="flex-1 bg-black text-white hover:bg-gray-800"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setSelectedProduct(product)
+                        }}
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Adicionar
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Women's Section */}
+      <section id="feminino" className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h3 className="text-3xl font-bold text-black mb-4">FEMININO</h3>
+            <p className="text-gray-600 max-w-2xl mx-auto">Elegância e conforto para todos os momentos</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {womenProducts.map((product) => (
+              <Card
+                key={product.id}
+                className="group cursor-pointer hover:shadow-lg transition-all duration-300 border-gray-200 bg-white"
+              >
+                <CardContent className="p-0">
+                  <div className="relative overflow-hidden" onClick={() => setSelectedProduct(product)}>
+                    <Image
+                      src={product.image || "/placeholder.svg"}
+                      alt={product.name}
+                      width={300}
+                      height={300}
+                      className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    {product.originalPrice && (
+                      <Badge className="absolute top-4 left-4 bg-black text-white">OFERTA</Badge>
+                    )}
+                    {product.isBestSeller && (
+                      <Badge className="absolute top-4 right-4 bg-red-600 text-white">MAIS VENDIDO</Badge>
+                    )}
+                  </div>
+
+                  <div className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <Badge variant="outline" className="text-xs">
+                        {product.category}
+                      </Badge>
+                      <div className="flex items-center space-x-1">
+                        {renderStars(product.rating)}
+                        <span className="text-sm text-gray-600">({product.reviews})</span>
+                      </div>
+                    </div>
+
+                    <h4
+                      className="font-semibold text-lg mb-3 text-black group-hover:text-gray-700 transition-colors cursor-pointer"
+                      onClick={() => setSelectedProduct(product)}
+                    >
+                      {product.name}
+                    </h4>
+
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-xl font-bold text-black">
+                          R$ {product.price.toFixed(2).replace(".", ",")}
+                        </span>
+                        {product.originalPrice && (
+                          <span className="text-sm text-gray-500 line-through">
+                            R$ {product.originalPrice.toFixed(2).replace(".", ",")}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleToggleFavorite(product.id)
+                        }}
+                        className={`${
+                          state.favorites.includes(product.id)
+                            ? "bg-black text-white hover:bg-gray-800"
+                            : "hover:bg-gray-100"
+                        }`}
+                      >
+                        <Heart className={`w-4 h-4 ${state.favorites.includes(product.id) ? "fill-current" : ""}`} />
+                      </Button>
+                      <Button
+                        className="flex-1 bg-black text-white hover:bg-gray-800"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setSelectedProduct(product)
+                        }}
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Adicionar
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {searchQuery && (
+        <section className="py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h3 className="text-3xl font-bold text-black mb-4">RESULTADOS DA BUSCA</h3>
+              <p className="text-gray-600">Resultados para "{searchQuery}"</p>
+            </div>
+
+            {searchFilteredProducts.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-600 text-lg">Nenhum produto encontrado para "{searchQuery}"</p>
+              </div>
+            ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {filteredProducts.map((product) => (
+                {searchFilteredProducts.map((product) => (
                   <Card
                     key={product.id}
                     className="group cursor-pointer hover:shadow-lg transition-all duration-300 border-gray-200"
@@ -384,20 +666,10 @@ export default function BlenzziCalcados() {
                   </Card>
                 ))}
               </div>
-
-              {filteredProducts.length === 0 && (
-                <div className="text-center py-12">
-                  <p className="text-gray-600 text-lg">
-                    {searchQuery
-                      ? `Nenhum produto encontrado para "${searchQuery}"`
-                      : "Nenhum produto encontrado nesta categoria"}
-                  </p>
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
-        </div>
-      </section>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* Product Detail Modal */}
       <Dialog open={!!selectedProduct} onOpenChange={() => setSelectedProduct(null)}>
@@ -529,7 +801,7 @@ export default function BlenzziCalcados() {
                   </a>
                 </li>
                 <li>
-                  <a href="#produtos" className="hover:text-white transition-colors">
+                  <a href="#mais-vendidos" className="hover:text-white transition-colors">
                     Produtos
                   </a>
                 </li>
